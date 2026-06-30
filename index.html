@@ -69,7 +69,7 @@
       border-radius: 8px;
       color: #ffffff;
       font-size: 1.1rem;
-      margin-bottom: 16px;
+      margin-bottom: 4px;
       outline: none;
       transition: border-color 0.2s;
     }
@@ -81,43 +81,23 @@
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #3b82f6;
-      color: #ffffff;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      transition: background 0.2s;
+    .range-hint {
+      font-size: 0.75rem;
+      color: #475569;
+      margin-bottom: 12px;
     }
 
-    button:hover { background: #2563eb; }
-
-    .reset-btn {
-      margin-top: 10px;
-      background: transparent;
-      border: 1px solid #1e3a5f;
-      color: #64748b;
-      font-size: 0.8rem;
-    }
-
-    .reset-btn:hover {
-      background: #1e3a5f;
-      color: #e2e8f0;
+    .error-msg {
+      font-size: 0.78rem;
+      color: #f87171;
+      margin-bottom: 12px;
+      min-height: 16px;
     }
 
     .results {
       max-width: 520px;
       margin: 0 auto;
-      display: none;
     }
-
-    .results.visible { display: block; }
 
     .result-item {
       background: #111e33;
@@ -153,14 +133,6 @@
     .result-right {
       text-align: right;
     }
-
-    footer {
-      text-align: center;
-      margin-top: 32px;
-      font-size: 0.75rem;
-      color: #334155;
-      letter-spacing: 0.05em;
-    }
   </style>
 </head>
 <body>
@@ -174,10 +146,9 @@
     <h2>Input</h2>
 
     <label for="loa">Length Overall (LOA) — metres</label>
-    <input type="number" id="loa" placeholder="e.g. 250" min="0" step="0.1" />
-
-    <button onclick="calculate()">Calculate</button>
-    <button class="reset-btn" onclick="resetAll()">Reset</button>
+    <input type="number" id="loa" placeholder="e.g. 250" min="1" max="999" step="1" oninput="calculate()" />
+    <div class="range-hint">Valid range: 1–999 m</div>
+    <div class="error-msg" id="errorMsg"></div>
   </div>
 
   <div class="results" id="results">
@@ -224,16 +195,25 @@
 
   </div>
 
-  <footer>MPA · POCC Internal Tool</footer>
-
   <script>
     function calculate() {
-      const loa = parseFloat(document.getElementById('loa').value);
+      const loaInput = document.getElementById('loa').value;
+      const loa = parseFloat(loaInput);
+      const errorMsg = document.getElementById('errorMsg');
 
-      if (isNaN(loa) || loa <= 0) {
-        alert('Please enter a valid LOA.');
+      if (loaInput === '' || isNaN(loa)) {
+        errorMsg.textContent = '';
+        clearResults();
         return;
       }
+
+      if (loa < 1 || loa > 999) {
+        errorMsg.textContent = 'LOA must be between 1 and 999 m.';
+        clearResults();
+        return;
+      }
+
+      errorMsg.textContent = '';
 
       const out1 = (loa >= 150 ? 0.7 : 0.5) * (0.22 * loa + 104) + loa;
       const out2 = (loa >= 150 ? 0.5 : 0.3) * (0.22 * loa + 104) + loa;
@@ -241,28 +221,20 @@
       const out4 = Math.PI * Math.pow(out1 / 1000, 2);
       const out5 = Math.PI * Math.pow(out2 / 1000, 2);
 
-      document.getElementById('out1').textContent = out1.toFixed(1);
-      document.getElementById('out2').textContent = out2.toFixed(1);
-      document.getElementById('out3').textContent = out3.toFixed(1);
-      document.getElementById('out4').textContent = out4.toFixed(3);
-      document.getElementById('out5').textContent = out5.toFixed(3);
-
-      document.getElementById('results').classList.add('visible');
+      document.getElementById('out1').textContent = Math.round(out1);
+      document.getElementById('out2').textContent = Math.round(out2);
+      document.getElementById('out3').textContent = Math.round(out3);
+      document.getElementById('out4').textContent = Math.round(out4);
+      document.getElementById('out5').textContent = Math.round(out5);
     }
 
-    function resetAll() {
-      document.getElementById('loa').value = '';
+    function clearResults() {
       document.getElementById('out1').textContent = '—';
       document.getElementById('out2').textContent = '—';
       document.getElementById('out3').textContent = '—';
       document.getElementById('out4').textContent = '—';
       document.getElementById('out5').textContent = '—';
-      document.getElementById('results').classList.remove('visible');
     }
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') calculate();
-    });
   </script>
 
 </body>
